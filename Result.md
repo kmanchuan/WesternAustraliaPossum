@@ -33,7 +33,7 @@ Insert size of this library was inferred as 400 bp through the intermediate info
 
 ![[Pasted image 20241104165006.png|Statistics of reads mapped to chromosomes]] 
 
-rrrr
-![hello](https://raw.githubusercontent.com/kmanchuan/UploadImages/main/17307573220007i1rnm.png)
+
+
 
 
