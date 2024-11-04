@@ -7,7 +7,7 @@ share: "true"
 
 About 106.29 Gb raw data of sequencing library was generated, containing low sequencing adaptors.
 
-![Adaptor content of R1](/Images/Pasted image 20241104154724.png)
+![[Pasted image 20241104154724.png|Adaptor content of R1]]
 
 ![[Pasted image 20241104155008.png|Adatpor content of R2]]
 
@@ -32,4 +32,8 @@ Insert size of this library was inferred as 400 bp through the intermediate info
 | 22-M-012721 | 106.29        | 104.12     | 97.37           | 98.94        | 28.82          |
 
 ![[Pasted image 20241104165006.png|Statistics of reads mapped to chromosomes]] 
+
+
+![hello](https://raw.githubusercontent.com/kmanchuan/UploadImages/main/17307573220007i1rnm.png)
+
 
