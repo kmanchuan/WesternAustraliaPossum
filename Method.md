@@ -41,15 +41,20 @@ ref=possum_ref
 /opt/nesi/CS400_centos7_bdw/BWA/0.7.18-GCC-12.3.0/bin/bwa mem -t 20 $ref $fq1 $fq2|samtools view -bS -@ 20 -|samtools sort -@ 20 - -o wa_ref_sorted.bam
 ```
 
-Statistics of mapped reads were performed using Bamtools (v2.5.1) [@barnett2011], followed by calculating average coverage of reference genome split by windows of 5,000 bp using BamDeal (v0.27, [GitHub](https://github.com/BGI-shenzhen/BamDeal)). GC-Depth distribution was plotted using in-house scripts.
-
+Statistics of mapped reads were performed using Bamtools (v2.5.1) [@barnett2011], followed by calculating average coverage of reference genome split by windows of 5,000 bp using BamDeal (v0.27, [GitHub](https://github.com/BGI-shenzhen/BamDeal)). GC-Depth distribution was plotted using in-house scripts, meanwhile specific area sequences near the low-coverage peak (where GC content was between 37.5%-50% while depth was between 10X-17X) were extracted using Seqkit (v2.8.2) [@shen2016].
 
 ```shell
-#/nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s3.bwa
+#/nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s3.bwa/s2.stat.sh
 bamtools stats -in wa_ref_sorted.bam >wa_ref_sorted.bam.MapRate
 bamdeal statistics Coverage -i wa_ref_sorted.bam -r possum_ref.fa -o wa_ref_sorted.bam.stat -w 5000
 perl /nesi/project/massey04238/bin/get_wind_tab.pl wa_ref_sorted.bam.stat.DepthGC.gz >win5k.out
 Rscript /nesi/project/massey04238/bin/GC_DEPTH.R win5k.out win5k.pdf
+```
+
+```shell
+#/nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s3.bwa/low.sh
+less win5k.out|awk '$5>=37.5&&$5<=50&&$4>=10&&$4<=17'|cut -f1-3|perl -ne 'chomp;my@a=split /\t/,$_;my$s=$a[1]-1;my$e=$a[2];print "$a[0]\t$s\t$e\n"' >low_dep.bed
+seqkit subseq --bed low_dep.bed possum_ref.fa -o low_dep.fa
 ```
 
 ---
