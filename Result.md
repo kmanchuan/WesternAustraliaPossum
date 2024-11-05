@@ -7,7 +7,7 @@ share: "true"
 
 About 106.29 Gb raw data of sequencing library was generated, containing low sequencing adaptors.
 
-![[Pasted image 20241104154724.png|Adaptor content of R1]]
+![Adaptor content of R1](../Images/Pasted%image%20241104154724.png)
 
 ![[Pasted image 20241104155008.png|Adatpor content of R2]]
 
