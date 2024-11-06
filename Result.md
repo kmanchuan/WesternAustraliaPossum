@@ -76,7 +76,47 @@ By contrast, the estimated genome size based on Jellyfish and Genomescope was be
 #/nesi/project/massey04238/01.possum/02.jellyfish/jellyfish/out/summary.txt
 ```
 
-To confirm whether the result of Genomescope was accurate, genome size was estimated manually based on the result of Jellyfish following this methodology ([Genome Size Estimation Tutorial](https://bioinformatics.uconn.edu/genome-size-estimation-tutorial/)). After filtering low frequency *k-mers* with high numbers (between 1-9) that probably was caused by sequencing error, total 17mer number was 77,623,206,436 and the homo-peak was at 24. As a result, the genome size was estimated to be 3.23 Gb which was close to the estimation by kmerfreq and the actual size of the reference genome.
+To confirm whether the result of Genomescope was accurate, genome size was estimated manually based on the result of Jellyfish following this methodology ([Genome Size Estimation Tutorial](https://bioinformatics.uconn.edu/genome-size-estimation-tutorial/)). After filtering low frequency *k-mers* with high numbers (between 1-9) that probably was caused by sequencing error, total 17mer number was 77,623,206,436 and the homo-peak was at 24. As a result, the genome size was estimated to be 3.23 Gb which was close to the estimation by kmerfreq (3.44 Gb) and the actual size of the reference genome (3.36 Gb).
 
 ![Estimated genome size based on the result from Jellyfish](./Images/Pasted%20image%2020241106121335.png)
 
+## *De novo* assembly
+
+### Assemblers and reduction
+
+For Minia, with *K-mer* size growing, the longer contig N50 and larger genome size was obtained. The assembly with K59 was 3.08 Gb and the contig N50 was 2.79 kb. We didn't test greater *K-mer* size, because compared with Minia under the same *K-mer* size of 59, Megahit could generate longer contig N50 as well as larger total size of genome. So, Megahit was preferred to generate contigs for downstream analysis.
+
+| Assembly       | Total size (Gb) | Contig Number | Contig N50 (kb) | GC (%) |
+| -------------- | --------------- | ------------- | --------------- | ------ |
+| Minia – K27    | 2.16            | 3,414,553     | 0.81            | 39.47  |
+| Minia – K31    | 2.46            | 2,843,843     | 1.23            | 39.40  |
+| Minia – K59    | 3.08            | 2,349,099     | 2.79            | 39.39  |
+| Megahit – K21  | 0.64            | 2,203,668     | 0.28            | 41.69  |
+| Megahit – K29  | 2.32            | 3,243,424     | 1.03            | 39.58  |
+| Megahit – K39  | 2.75            | 2,542,296     | 1.78            | 39.69  |
+| Megahit – K59  | 3.20            | 2,321,414     | 3.60            | 39.82  |
+| Megahit – K69  | 3.32            | 2,124,056     | 3.59            | 39.44  |
+| Megahit – K79  | 3.46            | 2,118,584     | 7.06            | 39.58  |
+| Megahit – K89  | 3.54            | 1,925,884     | 9.50            | 39.58  |
+| Megahit – K99  | 3.40            | 3,875,063     | 1.19            | 39.61  |
+| Megahit – K119 | 3.87            | 3,201,053     | 4.79            | 39.52  |
+| Megahit – K141 | 4.18            | 3,482,437     | 6.41            | 39.53  |
+
+![Genome size and Contig N50 statistics](./Images/Pasted%20image%2020241106144655.png)
+
+For Megahit, the same trend of contig N50 with Minia was observed between K21 and K89. However, when *K-mer* size exceeded 89, contig N50 dropped rapidly from 9.50 kb in K89 to 1.19 kb in K99, which means the genome sequences were more fragmented and less contiguous. So, we chose the K89 as the best performance.
+
+Given the estimated genome size of western Australia possum was 3.23 -3.44 Gb, the total size of K89 assembly (3.54 Gb) was greater than expectation, which might be caused by redundant sequences. So, reduction process was performed on K89 assembly by Redundans and Purge_dups. After removing redundant sequences, 3.32 Gb genome was obtained by Redundans, while 3.21 Gb was obtained by Purge_dups, and both of the two sizes were close to estimated genome size of western Australia possum.
+
+## Scaffolders
+
+Because both Minia and Megahit only generate contigs, to obtain longer and more contiguous genome region, scaffolding process should be performed on those contigs.
+
+To evaluate which scaffolders could performs better with our data,  we firstly compared BESST with Soapscaff based on Megahit - K59 assembly. On the one hand, BESST with default parameters generated the longer scaffold N50, reaching 15.06 kb, and increasing the number of iteration did not seem to improve the result, as scaffold N50 was the same with default parameters version and gap size was even increased by 0.01 Mb. By contrast, the scaffold N50 of the result with *-m 400* parameters was decreased slightly to 14.62 kb, though its gap size dropped dramatically from 85.94 Mb to 43.72 Mb. On the other hand, Soapscaff generated lower scaffold N50 (11.37 kb) as well as smaller gap size (62.03 Mb) compared with BESST with default parameters. In short, Soapscaff could achieve shorter scaffold N50 with relatively less gap, meanwhile BESST could reach the longest scaffold N50 with default parameters, and trade off the length of scaffold N50 for less gap content.
+ 
+| Scaffolder            | Total size (Gb) | Scaf num  | Scaf N50 (kb) | Gap (Mb) | GC (%) |
+| --------------------- | --------------- | --------- | ------------- | -------- | ------ |
+| BESST (default)       | 3.26            | 1,566,393 | 15.06         | 85.94    | 39.82  |
+| BESST (-m 400)        | 3.22            | 1,562,263 | 14.62         | 43.72    | 39.82  |
+| BESST (-iter 1000000) | 3.26            | 1,566,352 | 15.06         | 85.95    | 39.82  |
+| SoapScaff (-K 41)     | 3.22            | 1,299,394 | 11.37         | 62.03    | 39.81  |
