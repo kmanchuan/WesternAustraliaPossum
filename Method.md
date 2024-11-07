@@ -1,10 +1,10 @@
 ---
 share: "true"
 ---
-# Method
-## Sequencing and quality control
+# 1 Method
+## 1.1 Sequencing and quality control
 
-### Raw data statistics 
+### 1.1.1 Raw data statistics 
 
 Paired-end library with a 400 bp insert size was sequenced on Illumina NovaSeq platform by AGRF, generating 150 bp pared-end reads. Adaptor sequences were identified by FastQC (v0.12.1) [@andrews2010].
 
@@ -15,7 +15,7 @@ fastqc -t 8 -o s1.2.Fastqc_out 22-M-012721_H5L5VDSX7_CTCCACTAAT-AACAAGTACA_L001_
 ```
 
 ---
-### Filtering
+### 1.1.2 Filtering
 
 Raw reads with the rate of *N* higher than 5%, the low-quality bases (quality score < 10) higher than 30%, and the duplicated reads were filtered by SOAPnuke (v 2.1.9) [@chen2018].
 
@@ -25,7 +25,7 @@ SOAPnuke filter -1 WGS_raw_R1.fq.gz -2 WGS_raw_R2.fq.gz  -C WGS_clean_R1.fq.gz -
 ```
 
 ---
-### Mapping to reference genome
+### 1.1.3 Mapping to reference genome
 
 To infer the insert size of the library, the published reference genome from western Australia possums ([GCF_011100635.1](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_011100635.1/)) [@bondAdmixedBrushtailPossum2023] was downloaded from NCBI. Clean reads were aligned against the reference using BWA (v0.7.18-r1243) [@li2013], followed by sorting Bam files using Samtools (v1.19) [@danecek2021].
 
@@ -58,7 +58,7 @@ seqkit subseq --bed low_dep.bed possum_ref.fa -o low_dep.fa
 ```
 
 ---
-### Genome size estimation with *K-mer*
+### 1.1.4 Genome size estimation with *K-mer*
 
 Genome size of western Australia possum was estimated through *K-mer* approach, employing kmerfreq (v1.0) [@liu2013] with 17mer.
 
@@ -83,9 +83,9 @@ jellyfish histo -t 20 17mer_out > 17.histo
 Rscript genomescope.R 17.histo 17 150 out 10000
 ```
 
-## *De novo* assembly
+## 1.2 *De novo* assembly
 
-### Assemblers and reduction
+### 1.2.1 Assemblers and reduction
 
 Many assemblers were implemented to generate *De novo* assemblies, including Soapdenovo2 (r242) [@luo2012], Abyss (v2.2.5) [@jackman2017], Velvet (v1.2.10) [@zerbino2010], Meraculous (v2.2.6) [@chapmanMeraculousNovoGenome2011], Minia (v0.0.102) [@chikhi2013], and Megahit (v1.2.9) [@li2016]. Among them, only Minia and Megahit worked successfully or generated reasonable result with our data. For example, Abyss and Velvet loaded data for more than 16 hours without any informative response, while Soapdenovo2 just generated an assembly of smaller than 10 Mb, the size of which was obviously incorrect.
 
@@ -136,7 +136,7 @@ minimap2 -xasm5 -DP -t 8 K89.contigs.split K89.contigs.split | gzip -c - > K89.c
 /home/XiaocmFk3eJ/bin/purge_dups/bin/get_seqs -e dups.bed final.contigs.fa
 ```
 
-### Scaffolders
+### 1.2.2 Scaffolders
 
 Three scaffolding programs were tested, including scaff module of Soapdenovo2 (r242) (Soapscaff), BESST (v2.2.4) [@sahlin2014], and Redundans which actually incorporates SSPACE (v3.0) to perform scaffolding.
 
@@ -162,7 +162,7 @@ conda activate redundans
 /home/XiaocmFk3eJ/bin/miniconda3/envs/redundans/bin/redundans.py -i /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R*.fq.gz --noreduction -f final.contigs.fa -o nonRef_scaff_gapclose -t 10 --resume
 ```
 
-## Gapclosers
+### 1.2.3 Gapclosers
 
 The gaps of scaffolds can be filled by gapcloser programs using short-reads data. We tested three gapclosers: GMcloser (v1.6.2) [@kosugi2015], Redundans, and Gapcloser (v1.12) [@li2010].
 
@@ -185,3 +185,6 @@ The gaps of scaffolds can be filled by gapcloser programs using short-reads data
 /nesi/project/massey04238/bin/miniconda3/envs/gapcloser/bin/GapCloser -a Scaffolds_pass1.fa -b final.contigs.config -o besstM.gapclosed.fa -l 150 -t 10
 ```
 
+### 1.2.4 GC-Depth distribution
+
+Clean reads were mapped and GC-Depth distribution was plotted in the same way as we described in **
