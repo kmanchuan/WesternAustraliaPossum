@@ -112,7 +112,7 @@ Given the estimated genome size of western Australia possum was 3.23 -3.44 Gb, t
 
 Because both Minia and Megahit only generate contigs, to obtain longer and more contiguous genome region, scaffolding process should be performed on those contigs.
 
-To evaluate which scaffolders could performs better with our data,  we firstly compared BESST with Soapscaff based on Megahit - K59 assembly. On the one hand, BESST with default parameters generated the longer scaffold N50, reaching 15.06 kb, and increasing the number of iteration did not seem to improve the result, as scaffold N50 was the same with default parameters version and gap size was even increased by 0.01 Mb. By contrast, the scaffold N50 of the result with *-m 400* parameters was decreased slightly to 14.62 kb, though its gap size dropped dramatically from 85.94 Mb to 43.72 Mb. On the other hand, Soapscaff generated lower scaffold N50 (11.37 kb) as well as smaller gap size (62.03 Mb) compared with BESST with default parameters. In short, Soapscaff could achieve shorter scaffold N50 with relatively less gap, meanwhile BESST could reach the longest scaffold N50 with default parameters, and trade off the length of scaffold N50 for less gap content.
+To evaluate which scaffolders could performs better with our data,  we firstly compared BESST with Soapscaff based on Megahit - K59 assembly. On the one hand, BESST with default parameters generated the longer scaffold N50, reaching 15.06 kb, and increasing the number of iteration did not seem to improve the result, as scaffold N50 was the same with default parameters version and gap size was even increased by 0.01 Mb. By contrast, the scaffold N50 of the result with *-m 400* parameters was decreased slightly to 14.62 kb, but its gap size dropped dramatically from 85.94 Mb to 43.72 Mb. On the other hand, Soapscaff generated lower scaffold N50 (11.37 kb) as well as smaller gap size (62.03 Mb) compared with BESST with default parameters. In short, Soapscaff could achieve shorter scaffold N50 with relatively less gap, meanwhile BESST could reach the longest scaffold N50 with default parameters, and trade off the length of scaffold N50 for less gap content.
  
 | Scaffolder            | Total size (Gb) | Scaf num  | Scaf N50 (kb) | Gap (Mb) | GC (%) |
 | --------------------- | --------------- | --------- | ------------- | -------- | ------ |
@@ -120,3 +120,55 @@ To evaluate which scaffolders could performs better with our data,  we firstly c
 | BESST (-m 400)        | 3.22            | 1,562,263 | 14.62         | 43.72    | 39.82  |
 | BESST (-iter 1000000) | 3.26            | 1,566,352 | 15.06         | 85.95    | 39.82  |
 | SoapScaff (-K 41)     | 3.22            | 1,299,394 | 11.37         | 62.03    | 39.81  |
+
+Next, we compared BESST and Redundans based on Megahit - K89 assembly. Both of the two programs were run under default parameters. Unfortunately, scaffolding module of Redundans didn't work well on our data, showing no any improvement after its process.
+  
+| Scaffolder | Total size (Gb) | Scaf num  | Scaf N50 (Kb) | Gap (Mb) | GC (%) |
+| ---------- | --------------- | --------- | ------------- | -------- | ------ |
+| BESST      | 3.57            | 1,467,147 | 28.81         | 50.38    | 39.58  |
+| Redundans  | 3.54            | 1,925,884 | 9.50          | 0        | 39.58  |
+
+To check whether Megahit contigs also outperformed Minia contigs in scaffolding, we compared their contigs assemblies in K59. As a result, the scaffolds N50 based on Minia contigs was 16.30 kb which was longer 1.24 kb than that of Megahit, but its gap size (198.74 Mb) was larger than twice as much as that of Megahit (85.94 Mb). In addition to that Minia usually generates shorter contig N50 than Megahit, as we described in *Assemblers and reduction* section, we comprehensively chose Megahit as our primary assemblers.
+
+| Assembler     | Scaffolder      | Total size (Gb) | Scaf num  | Scaf N50 (kb) | Gap (Mb) | GC (%) |
+| ------------- | --------------- | --------------- | --------- | ------------- | -------- | ------ |
+| Minia - K59   | BESST (default) | 3.26            | 1,395,544 | 16.30         | 198.74   | 39.38  |
+| Megahit - K59 | BESST (default) | 3.26            | 1,566,393 | 15.06         | 85.94    | 39.82  |
+
+In short, after these comparisons between different assemblers, scaffolders, and settings within the same scaffolders, Megahit might be our optimal assembler, while BESST with *-m 400* parameters might a better option of scaffolder, although slight shorter scaffold N50 often comes together.
+
+Currently, the best version of scaffolds assembly was from BESST with *-m 400*  parameters based on Megahit - K89 contigs after reduction by Purge_dups.
+
+| Scaffolder     | Total size (Gb) | Scaf num | Scaf N50 (Kb) | Gap (Mb) | GC (%) |
+| -------------- | --------------- | -------- | ------------- | -------- | ------ |
+| BESST (-m 400) | 3.23            | 554,852  | 30.19         | 28.96    | 39.53  |
+## Gapclosers
+
+For GMcloser, we attempted to use Minia - K59 contigs to fill the gaps of the scaffolds from Megahit and BESST, as different assemblers might have distinct assembling bias. So, contigs from different assemblers may presumably complement each other. However, none of submitted jobs result was completed successfully from GMcloser by now, even though we have adjusted various parameters.
+
+For Redundans, its gapclosing module was tested along during scaffolding. As we described in *Scaffolders* section, its scaffolding module, as well as gapclosing module, didn't work well on our data. So, we discontinue this program for gapclosing.
+
+Gapcloser was robust to close the gaps from both scaffolds generated by its internal pipeline, namely Soapscaff, and external scaffolds like BESST. After gapclosing, the gap size dropped greatly from 62.03 Mb to 7.09 Mb, while contig N50 rose from 3.61 kb to 5.99 kb. Correspondingly, the scaffolds from BESST was also improved drastically as its gap size decreased by 73.57% and contig N50 more than doubled, up to 22.35 kb.
+
+| Version       | Stage     | Total size (Gb) | Gap (Mb) | Scaffold N50 (kb) | Contig N50 (kb) |
+| ------------- | --------- | --------------- | -------- | ----------------- | --------------- |
+| Megahit – K59 | contig    | -               | -        | -                 | 3.60            |
+| +Soapscaff    | scaffold  | 3.22            | 62.03    | 11.37             | 3.61            |
+| ++Gapclolser  | gapfilled | 3.20            | 7.09     | 11.27             | 5.99            |
+| Megahit – K89 | contig    | -               | -        | -                 | 9.50            |
+| +Purge_dups   | contig    | -               | -        | -                 | 11.04           |
+| ++BESST       | scaffold  | 3.25            | 51.54    | 31.88             | 11.06           |
+| +++Gapclolser | gapfilled | 3.23            | 13.62    | 31.61             | 22.35           |
+
+By now, the result of gapclosing based on BESST with *-m 400* parameters hasn't obtained. So, the optimal *De novo* pipeline for our data was Megahit as assembler, Purge_dups as redundant sequences remover, BESST as scaffolder, and Gapcloser as gapcloser. Otherwise, given Gapcloser was so potent to reduce the gap size, decreased by 88.57%, in scaffolds from Soapscaff, and they are both incorporated in Soapdenovo2, there might be some internal optimizations between them. In other words, an alternative pipeline of Soapscaff-to-Gapcloser might generate better result. And we are verifying this thought, waiting for the result.
+
+![Optimal pipeline of *De novo* assembly](./Images/Pasted%20image%2020241107162949.png)
+
+| Version          | Stage     | Total size (Gb) | Gap (Mb) | Scaffold N50 (kb) | Contig N50 (kb) |
+| ---------------- | --------- | --------------- | -------- | ----------------- | --------------- |
+| Megahit – K89    | Contig    | -               | -        | -                 | 9.50            |
+| +Purge_dups      | Contig    | -               | -        | -                 | 11.04           |
+| ++BESST (-m 400) | Scaffold  | 3.23            | 28.96    | 30.19             | 11.06           |
+| +++Gapclolser    | Gapfilled | Waiting         |          |                   |                 |
+| ++Soapscaff      | Scaffold  | Waiting         |          |                   |                 |
+| +++Gapcloser     | Gapfilled | Waiting         |          |                   |                 |
