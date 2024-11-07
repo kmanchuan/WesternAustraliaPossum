@@ -101,7 +101,7 @@ To obtain a better assembly, a range of *K-mer* sizes were performed. K27, K31, 
 /nesi/project/massey04238/bin/MEGAHIT-1.2.9-Linux-x86_64-static/bin/megahit -1 /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R1.fq.gz -2 /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R2.fq.gz --k-list 99,119,141 --tmp-dir /nesi/nobackup/massey04238/temp -o test_3 -t 10 --continue
 ```
 
-To remove redundant sequences of genome assemblies, Redundans [@pryszcz2016] and Purge_dups [@guan2020] were implemented respectively. The result of Redundans was refined consequently by filtering those potential sequences with both overlap rate and alignment identity more than 90%.
+To remove redundant sequences of genome assemblies, Redundans (v2.01) [@pryszcz2016] and Purge_dups (v1.2.5) [@guan2020] were implemented respectively. The result of Redundans was refined consequently by filtering those potential sequences with both overlap rate and alignment identity more than 90%.
 
 ```shell
 #Reduans - reduction
@@ -156,9 +156,32 @@ conda activate besst
 ```
 
 ```shell
-#Redundans - scaffolding
+#Redundans - scaffolding and gapclosing
 #/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s9.redundans/scaffolding/nonRef_scaff_gapclose/nonRef_scaff_gapclose.sh
 conda activate redundans
 /home/XiaocmFk3eJ/bin/miniconda3/envs/redundans/bin/redundans.py -i /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R*.fq.gz --noreduction -f final.contigs.fa -o nonRef_scaff_gapclose -t 10 --resume
+```
+
+## Gapclosers
+
+The gaps of scaffolds can be filled by gapcloser programs using short-reads data. We tested three gapclosers: GMcloser (v1.6.2) [@kosugi2015], Redundans, and Gapcloser (v1.12) [@li2010].
+
+```shell
+#GMcloser
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s6.gmcloser/gmcloser/gmcloser.sh
+/nesi/project/massey04238/bin/GMcloser-1.6.2/gmcloser -t Scaffolds_pass1.fa  -q Minia_k59_contigs.fa -p test.GMcloser -n 20 -r /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R1.fq.gz /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R2.fq.gz -l 150 -i 400 -d 160 -c
+```
+
+```shell
+#Redundans - scaffolding and gapclosing
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s9.redundans/scaffolding/nonRef_scaff_gapclose/nonRef_scaff_gapclose.sh
+/home/XiaocmFk3eJ/bin/miniconda3/envs/redundans/bin/redundans.py -i /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R*.fq.gz --noreduction -f final.contigs.fa -o nonRef_scaff_gapclose -t 10 --resume
+```
+
+```shell
+#Gapcloser
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s3.besst/k89_purged_besst/m400/gapcloser/gapcloser.sh
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s3.besst/k89_purged_besst/m400/gapcloser/final.contigs.config
+/nesi/project/massey04238/bin/miniconda3/envs/gapcloser/bin/GapCloser -a Scaffolds_pass1.fa -b final.contigs.config -o besstM.gapclosed.fa -l 150 -t 10
 ```
 
