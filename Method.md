@@ -276,3 +276,69 @@ cat  busco_complete_head100.bed|while read i
 done
 ```
 
+## Reference-guided assembly
+
+### Consensus
+
+As clean reads were already aligned to the reference genome and variants were called, the consensus could be simply obtained using BCFtools.
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/08.bcftools_consensus/bcftools/bcf_consensus.sh
+bcftools mpileup -Ou -f ref.fa wa_ref_sorted.bam | bcftools call -mv -Oz -o output.vcf.gz
+
+bcftools index output.vcf.gz
+
+bcftools norm -f ref.fa output.vcf.gz -Oz -o output.norm.vcf.gz
+
+bcftools index output.norm.vcf.gz
+
+bcftools consensus -f ref.fa output.norm.vcf.gz  > wa_consensus.fa
+```
+
+Then, the consensus was checked manually using IGV (v2.18.4) [@robinson2011].
+
+### Subgroups assembly
+
+To reduce the difficulty and complexity of whole genome assembly, we presumed that if reads in a certain region could be identified and assorted into subgroups, using *De novo* assemblers to assemble those reads in different subgroups respectively might be a more easy way to obtain a better assembly [@lischer2017]. To do so, we presumed a strategy that grouping reads based on chromosomes of the reference genome. Firstly, all clean reads were mapped to chromosome 1. Those mapped reads were extracted to do *De novo* assembling independently, while the unmapped reads continued mapping to chromosome 2, and so on. iterative alignment might effectively avoid multiple aligned reads to be used more than once. We don't know how multiple aligned reads will affect the result yet, but in previous research, this issue was just ignored [@schneeberger2011].
+
+![Subgroups assembly strategy](./Images/Pasted%20image%2020241108161910.png)
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/08.bcftools_consensus/bcftools/chr1/iteration/s1.bwa.sh
+ref=ref_chr1.fa
+
+#Index
+/opt/nesi/CS400_centos7_bdw/BWA/0.7.18-GCC-12.3.0/bin/bwa index -p $ref $ref
+#Align
+module load SAMtools/1.19-GCC-12.3.0/
+fq1=/nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R1.fq.gz
+fq2=/nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R2.fq.gz
+/opt/nesi/CS400_centos7_bdw/BWA/0.7.18-GCC-12.3.0/bin/bwa mem -t 20 $ref $fq1 $fq2|samtools view -bS -@ 20 -|samtools sort -@ 20 - -o wa_chr1_sorted.bam
+
+#Extraction
+samtools view -F 4 ../wa_chr1_sorted.bam|cut -f1 >chr1_mapped_reads.list
+seqkit grep -j 20 -f chr1_mapped_reads.list WGS_clean_R1.fq.gz -o chr1_mapped_R1.fq.gz
+seqkit grep -j 20 -f chr1_mapped_reads.list WGS_clean_R2.fq.gz -o chr1_mapped_R2.fq.gz
+```
+
+### Reference-guided scaffolding
+
+Since there already is a chromosome-level reference genome, it might be useful to use it to guide scaffolding. In this scenario, contigs were assembled using *De novo* assemblers, followed by reference-guided scaffolding using ntJoin (v1.1.5) [@coombe2020] and Ragtag (v2.1.0) [@alonge2022] which were proven to be effective in previous research [@mira-jover2024; @alonge2022]. Redundans was also tested, as its scaffolding module contains the option of using reference. The Megahit - K89 assembly was used in these tests.
+
+```shell
+#ntJoin
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s8.ntjoin/ntjoin/ntjoin.sh
+ntJoin assemble target=megahit_k89_ctg.fa target_weight=1 references='ref.fa' reference_weights='2' k=24 w=100 t=20 agp time
+```
+
+```shell
+#Ragtag
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s7.ragtag/ragtag/ragtag.sh
+ragtag.py scaffold ref.fa k89_contig.fa -t 16 --aligner minimap2 -o ragtag_scaffold_output3 -r -g 1
+```
+
+```shell
+#Redundans - reference-guided scaffodling
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s9.redundans/scaffolding/ref_scaff/ref_scaff.sh
+/home/XiaocmFk3eJ/bin/miniconda3/envs/redundans/bin/redundans.py -i /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R*.fq.gz --noreduction --nogapclosing -f final.contigs.fa -o ref_scaff -t 10 -r EA_ref.fa
+```
