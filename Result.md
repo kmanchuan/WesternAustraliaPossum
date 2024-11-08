@@ -3,9 +3,9 @@ share: "true"
 ---
 # Result
 
-## Sequencing and quality control
+## 1 Sequencing and quality control
 
-###  Raw data statistics
+### 1.1 Raw data statistics
 
 About 106.29 Gb raw data of sequencing library was generated, containing low sequencing adaptors.
 
@@ -18,7 +18,7 @@ About 106.29 Gb raw data of sequencing library was generated, containing low seq
 ```
 
 ---
-### Filtering
+### 1.2 Filtering
 
 After filtering, about 104.12 Gb clean data was obtained.
 
@@ -27,7 +27,7 @@ After filtering, about 104.12 Gb clean data was obtained.
 ```
 
 ---
-### Mapping to reference genome
+### 1.3 Mapping to reference genome
 
 Insert size of this library was inferred as 400 bp through the intermediate information from Samtools [@danecek2021].  Around 97.37% of clean reads were aligned to reference genome, most of which (~95.92 Gb) were aligned to chromosomes.
 
@@ -38,7 +38,7 @@ Insert size of this library was inferred as 400 bp through the intermediate info
 ![Statistics of reads mapped to chromosomes](./Images/Pasted%20image%2020241104165006.png) 
 
 
-GC-Depth distribution was obtained from mapped reads. GC content concentrated around 40% with solo peak, which reflected the reference genome almost contained no contamination from exotic organisms. A single depth peak was indicated around 30X, which was reasonable according to the data volume of this library. In addition, there was a faint peak near 13X of depth, which might indicate the highly repeat region of the reference genome, such as satellite DNA or large tandem repeats. Because of the limitation of short-read sequencing platform, those complex regions might be difficult to uniquely map, which resulted in low coverage or no coverage in those regions [@pop2008; @alkan2011]. Correspondingly, after checking the sequences near the low-coverage peak manually, plenty of repetitive sequences were observed.
+GC-Depth distribution was obtained from mapped reads. GC content concentrated around 40% with solo peak, which reflected the reference genome almost contained no contamination from exotic organisms. A single depth peak was indicated around 30X, which was reasonable according to the data volume of this library. In addition, there was a faint peak near 13X of depth, which might indicate the highly repeat region of the reference genome, such as satellite DNA or large tandem repeats. Because of the limitation of short-read sequencing platform, those complex regions might be difficult to uniquely map, which resulted in low coverage or no coverage in those regions [@liao2019; @pop2008; @alkan2011]. Correspondingly, after checking the sequences near the low-coverage peak manually, plenty of repetitive sequences were observed.
 
 ![GC-Depth distribution based on reference genome](./Images/Pasted%20image%2020241105150537.png)
 
@@ -53,7 +53,7 @@ GC-Depth distribution was obtained from mapped reads. GC content concentrated ar
 ![Repetitive sequences from low-coverage area](./Images/Pasted%20image%2020241106111153.png)
 
 ---
-### Genome size estimation with *K-mer*
+### 1.4 Genome size estimation with *K-mer*
 
 The estimated genome size can be obtained with this fomula: kmer_num/pkdepth, where the kmer_num is the total number of *k-mers*, while pkdepth refers to the most frequent peak of *k-mers*.
 
@@ -80,9 +80,9 @@ To confirm whether the result of Genomescope was accurate, genome size was estim
 
 ![Estimated genome size based on the result from Jellyfish](./Images/Pasted%20image%2020241106121335.png)
 
-## *De novo* assembly
+## 2 *De novo* assembly
 
-### Assemblers and reduction
+### 2.1 Assemblers and reduction
 
 For Minia, with *K-mer* size growing, the longer contig N50 and larger genome size was obtained. The assembly with K59 was 3.08 Gb and the contig N50 was 2.79 kb. We didn't test greater *K-mer* size, because compared with Minia under the same *K-mer* size of 59, Megahit could generate longer contig N50 as well as larger total size of genome. So, Megahit was preferred to generate contigs for downstream analysis.
 
@@ -108,7 +108,7 @@ For Megahit, the same trend of contig N50 with Minia was observed between K21 an
 
 Given the estimated genome size of western Australia possum was 3.23 -3.44 Gb, the total size of K89 assembly (3.54 Gb) was greater than expectation, which might be caused by redundant sequences. So, reduction process was performed on K89 assembly by Redundans and Purge_dups. After removing redundant sequences, 3.32 Gb genome was obtained by Redundans, while 3.21 Gb was obtained by Purge_dups, and both of the two sizes were close to estimated genome size of western Australia possum.
 
-### Scaffolders
+### 2.2 Scaffolders
 
 Because both Minia and Megahit only generate contigs, to obtain longer and more contiguous genome region, scaffolding process should be performed on those contigs.
 
@@ -142,25 +142,27 @@ Currently, the best version of scaffolds assembly was from BESST with *-m 400*  
 | Scaffolder     | Total size (Gb) | Scaf num | Scaf N50 (Kb) | Gap (Mb) | GC (%) |
 | -------------- | --------------- | -------- | ------------- | -------- | ------ |
 | BESST (-m 400) | 3.23            | 554,852  | 30.19         | 28.96    | 39.53  |
-### Gapclosers
+### 2.3 Gapclosers
 
 For GMcloser, we attempted to use Minia - K59 contigs to fill the gaps of the scaffolds from Megahit and BESST, as different assemblers might have distinct assembling bias. So, contigs from different assemblers may presumably complement each other. However, none of submitted jobs result was completed successfully from GMcloser by now, even though we have adjusted various parameters.
 
 For Redundans, its gapclosing module was tested along during scaffolding. As we described in *Scaffolders* section, its scaffolding module, as well as gapclosing module, didn't work well on our data. So, we discontinue this program for gapclosing.
 
-Gapcloser was robust to close the gaps from both scaffolds generated by its internal pipeline, namely Soapscaff, and external scaffolds like BESST. After gapclosing, the gap size dropped greatly from 62.03 Mb to 7.09 Mb, while contig N50 rose from 3.61 kb to 5.99 kb. Correspondingly, the scaffolds from BESST was also improved drastically as its gap size decreased by 73.57% and contig N50 more than doubled, up to 22.35 kb.
+Gapcloser was robust to close the gaps from both scaffolds generated by its internal pipeline, namely Soapscaff, and external scaffolds like BESST. After gapclosing, the gap size of Soapscaff scaffolds dropped greatly from 62.03 Mb to 7.09 Mb, while contig N50 rose from 3.61 kb to 5.99 kb. Correspondingly, the scaffolds from BESST (based on Megahit - K89 after reduction by Purge_dups) were also improved drastically as their gap size decreased by 73.57% and the contig N50 more than doubled, up to 22.35 kb.
 
-| Version       | Stage     | Total size (Gb) | Gap (Mb) | Scaffold N50 (kb) | Contig N50 (kb) |
-| ------------- | --------- | --------------- | -------- | ----------------- | --------------- |
-| Megahit – K59 | contig    | -               | -        | -                 | 3.60            |
-| +Soapscaff    | scaffold  | 3.22            | 62.03    | 11.37             | 3.61            |
-| ++Gapclolser  | gapfilled | 3.20            | 7.09     | 11.27             | 5.99            |
-| Megahit – K89 | contig    | -               | -        | -                 | 9.50            |
-| +Purge_dups   | contig    | -               | -        | -                 | 11.04           |
-| ++BESST       | scaffold  | 3.25            | 51.54    | 31.88             | 11.06           |
-| +++Gapclolser | gapfilled | 3.23            | 13.62    | 31.61             | 22.35           |
+| Version           | Stage     | Total size (Gb) | Gap (Mb) | Scaffold N50 (kb) | Contig N50 (kb) |
+| ----------------- | --------- | --------------- | -------- | ----------------- | --------------- |
+| Megahit – K59     | contig    | -               | -        | -                 | 3.60            |
+| +Soapscaff        | scaffold  | 3.22            | 62.03    | 11.37             | 3.61            |
+| ++Gapclolser      | gapfilled | 3.20            | 7.09     | 11.27             | 5.99            |
+| Megahit – K89     | contig    | -               | -        | -                 | 9.50            |
+| +Purge_dups       | contig    | -               | -        | -                 | 11.04           |
+| ++BESST (default) | scaffold  | 3.25            | 51.54    | 31.88             | 11.06           |
+| +++Gapclolser     | gapfilled | 3.23            | 13.62    | 31.61             | 22.35           |
 
-By now, the result of gapclosing based on BESST with *-m 400* parameters hasn't obtained. So, the optimal *De novo* pipeline for our data was Megahit as an assembler, Purge_dups as a redundant sequences remover, BESST as a scaffolder, and Gapcloser as a gapcloser. Otherwise, given Gapcloser was so potent to reduce the gap size in scaffolds from Soapscaff, decreased by 88.57%, and they are both incorporated in Soapdenovo2, there might be some internal optimizations between them. In other words, an alternative pipeline of Soapscaff-to-Gapcloser maybe generate better result. And we are verifying this thought, waiting for the result.
+By now, the result of gapclosing based on BESST with *-m 400* parameters hasn't obtained. 
+
+So, the optimal *De novo* pipeline for our data was Megahit as an assembler, Purge_dups as a redundant sequences remover, BESST as a scaffolder, and Gapcloser as a gapcloser. Otherwise, given Gapcloser was so potent to reduce the gap size in scaffolds from Soapscaff, decreased by 88.57%, and they are both incorporated in Soapdenovo2, there might be some internal optimizations between them. In other words, an alternative pipeline of Soapscaff-to-Gapcloser maybe generate better result. And we are verifying this thought, waiting for the result.
 
 ![Optimal pipeline of *De novo* assembly](./Images/Pasted%20image%2020241107162949.png)
 
@@ -172,3 +174,33 @@ By now, the result of gapclosing based on BESST with *-m 400* parameters hasn't 
 | +++Gapclolser    | Gapfilled | Waiting         |          |                   |                 |
 | ++Soapscaff      | Scaffold  | Waiting         |          |                   |                 |
 | +++Gapcloser     | Gapfilled | Waiting         |          |                   |                 |
+
+### 2.4 GC-Depth distribution
+
+According to the scatter plots, GC-Depth distribution for each assembly was similar with that of reference genome, which indicated that both Minia and Megahit were relatively reliable assemblers, generating contigs without apparent errors. In addition, a low-coverage peak was also observed in each GC-Depth plots. As we explained in *Mapping to reference genome* section, those regions were supposed to be repetitive structure in genome, which were hard to assemble for short reads. And the low-coverage area became deeper along with the increase of *K-mer*, which reflected a fact that relatively greater *K-mer*  could help assembliers solve complex regions in genome [@liao2019].
+
+![GC-Depth distribution of *De novo* assemblies](./Images/Pasted%20image%2020241108102839.png)
+
+### 2.5 Genome completeness
+
+Firstly, BuscoV5 was used to assess the completeness of our *De novo* genomes. However, it seemed to have some conflicts with NeSI platform ([NeSI](https://www.nesi.org.nz/)) where all our jobs were performed, according to NeSI's support team. Following their instruction, we used Compleasm to replace BuscoV5, meanwhile BuscoV4 was also employed to make assessment.
+
+To verify the difference between BuscoV4 and BuscoV5, Megahit - K59 assembly was assessed respectively by each version. The result showed that the difference was very small. The proportion of complete genes of BuscoV5 was 44.8%, slightly lower than that of BsucoV4 at 45.5%. The difference in the proportion of fragmented genes was only 0.7%, and the proportion of missing genes was the same. In conclusion, the difference between the two versions of Busco was negligible.
+
+By contrast, according to the results tested on Minia - K59 scaffolds and Megahit - K89 scaffolds, Compleasm appeared to obtain roughly 6.3 percentage points more complete genes than BuscoV4, as well as approximately 5.7 percentage points more fragmented genes and 12.1percentage points less missing genes. However, Compleasm runs faster than Busco, especially on large and chromosome-level genomes.
+
+For both contigs and scaffolds assessment, the graph showed the larger *K-mer* was set during assembling, the more completeness the assemblies could reach. After reduction, more complete genes were found than before, even though the proportion increased by only 0.1 - 0.2 percent, which means our reduction process was reliable. BESST appeared better completeness than Soapscaff, as the proportion of complete genes in Megahit - K59 scaffolds by BESST was 44.8% - 45.5%, but only 40.9% in scaffolds by Soapscaff. Furthermore, Gapcloser didn't significantly improve completeness, which only increased by 1 percentage point.
+
+![Genome completeness assessment](./Images/Pasted%20image%2020241108131452.png)
+
+### 2.6 Heterozygosity and mutation rate
+
+After calculating heterozygosity or mutation rate of each selected gene, average heterozygosity and mutation rate was obtained. The heterozygosity within western Australia possum was 0.00097, which was at a very low level. On the other hand, the mutation rate between western and eastern Australia possums was 0.0059, which might indicate that the difference between western and eastern Australia possums was larger than the difference in western Australia possum. However, it's noteworthy that the result based on this method was far from being accurate, as we didn't strictly qualify reads alignment or variants calling, not to mention more population data should be involved. This estimation was just a quick look about the complexity of the western Australia possum genome. 
+
+![Average heterozygosity and mutation rate](./Images/Pasted%20image%2020241108144733.png)
+
+
+
+
+
+

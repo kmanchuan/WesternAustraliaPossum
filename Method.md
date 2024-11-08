@@ -1,10 +1,10 @@
 ---
 share: "true"
 ---
-# 1 Method
-## 1.1 Sequencing and quality control
+# Method
+## 1 Sequencing and quality control
 
-### 1.1.1 Raw data statistics 
+### 1.1 Raw data statistics 
 
 Paired-end library with a 400 bp insert size was sequenced on Illumina NovaSeq platform by AGRF, generating 150 bp pared-end reads. Adaptor sequences were identified by FastQC (v0.12.1) [@andrews2010].
 
@@ -15,7 +15,7 @@ fastqc -t 8 -o s1.2.Fastqc_out 22-M-012721_H5L5VDSX7_CTCCACTAAT-AACAAGTACA_L001_
 ```
 
 ---
-### 1.1.2 Filtering
+### 1.2 Filtering
 
 Raw reads with the rate of *N* higher than 5%, the low-quality bases (quality score < 10) higher than 30%, and the duplicated reads were filtered by SOAPnuke (v 2.1.9) [@chen2018].
 
@@ -25,7 +25,7 @@ SOAPnuke filter -1 WGS_raw_R1.fq.gz -2 WGS_raw_R2.fq.gz  -C WGS_clean_R1.fq.gz -
 ```
 
 ---
-### 1.1.3 Mapping to reference genome
+### 1.3 Mapping to reference genome
 
 To infer the insert size of the library, the published reference genome from western Australia possums ([GCF_011100635.1](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_011100635.1/)) [@bondAdmixedBrushtailPossum2023] was downloaded from NCBI. Clean reads were aligned against the reference using BWA (v0.7.18-r1243) [@li2013], followed by sorting Bam files using Samtools (v1.19) [@danecek2021].
 
@@ -58,7 +58,7 @@ seqkit subseq --bed low_dep.bed possum_ref.fa -o low_dep.fa
 ```
 
 ---
-### 1.1.4 Genome size estimation with *K-mer*
+### 1.4 Genome size estimation with *K-mer*
 
 Genome size of western Australia possum was estimated through *K-mer* approach, employing kmerfreq (v1.0) [@liu2013] with 17mer.
 
@@ -83,9 +83,9 @@ jellyfish histo -t 20 17mer_out > 17.histo
 Rscript genomescope.R 17.histo 17 150 out 10000
 ```
 
-## 1.2 *De novo* assembly
+## 2 *De novo* assembly
 
-### 1.2.1 Assemblers and reduction
+### 2.1 Assemblers and reduction
 
 Many assemblers were implemented to generate *De novo* assemblies, including Soapdenovo2 (r242) [@luo2012], Abyss (v2.2.5) [@jackman2017], Velvet (v1.2.10) [@zerbino2010], Meraculous (v2.2.6) [@chapmanMeraculousNovoGenome2011], Minia (v0.0.102) [@chikhi2013], and Megahit (v1.2.9) [@li2016]. Among them, only Minia and Megahit worked successfully or generated reasonable result with our data. For example, Abyss and Velvet loaded data for more than 16 hours without any informative response, while Soapdenovo2 just generated an assembly of smaller than 10 Mb, the size of which was obviously incorrect.
 
@@ -136,7 +136,7 @@ minimap2 -xasm5 -DP -t 8 K89.contigs.split K89.contigs.split | gzip -c - > K89.c
 /home/XiaocmFk3eJ/bin/purge_dups/bin/get_seqs -e dups.bed final.contigs.fa
 ```
 
-### 1.2.2 Scaffolders
+### 2.2 Scaffolders
 
 Three scaffolding programs were tested, including scaff module of Soapdenovo2 (r242) (Soapscaff), BESST (v2.2.4) [@sahlin2014], and Redundans which actually incorporates SSPACE (v3.0) to perform scaffolding.
 
@@ -162,7 +162,7 @@ conda activate redundans
 /home/XiaocmFk3eJ/bin/miniconda3/envs/redundans/bin/redundans.py -i /nesi/project/massey04238/01.possum/00.raw_data/01.WA_wgs_data/s2.filtered/WGS_clean_R*.fq.gz --noreduction -f final.contigs.fa -o nonRef_scaff_gapclose -t 10 --resume
 ```
 
-### 1.2.3 Gapclosers
+### 2.3 Gapclosers
 
 The gaps of scaffolds can be filled by gapcloser programs using short-reads data. We tested three gapclosers: GMcloser (v1.6.2) [@kosugi2015], Redundans, and Gapcloser (v1.12) [@li2010].
 
@@ -185,6 +185,94 @@ The gaps of scaffolds can be filled by gapcloser programs using short-reads data
 /nesi/project/massey04238/bin/miniconda3/envs/gapcloser/bin/GapCloser -a Scaffolds_pass1.fa -b final.contigs.config -o besstM.gapclosed.fa -l 150 -t 10
 ```
 
-### 1.2.4 GC-Depth distribution
+### 2.4 GC-Depth distribution
 
-Clean reads were mapped and GC-Depth distribution was plotted in the same way as we described in **
+Clean reads were mapped and GC-Depth distribution was plotted in the same way as we described in *Mapping to reference genome* section, except that the reference genomes used were our *De novo* assemblies. They were Minia - K31, Megahit - K59, Megahit - K89, and Megahit - K89 after reduction by Purge_dups.
+
+### 2.5 Genome completeness
+
+Busco (v4.1.4, BuscoV4) [@manni2021], Busco (v5.7.1, BuscoV5), and Compleasm (v0.2.6) [@huang2023] were implemented to assess genome completeness using mammalia_odb10 database.
+
+```shell
+#BuscoV4
+#/scale_wlg_nobackup/filesets/nobackup/massey04238/temp/k89_purged_besstM_busco/buscoV4_sub.sh
+/nesi/project/massey04238/bin/miniconda3/envs/buscov4/bin/busco -i Scaffolds_pass1.fa -l /nesi/nobackup/massey04238/temp/busco_database/busco/mammalia_odb10 -o busco_out -m genome -c 20 --offline
+```
+
+```shell
+#BuscoV5
+#/nesi/project/massey04238/01.possum/03.assemble/04.Minia/s2.busco/k31_contig/busco.sh
+busco -i test_out.contigs_lenth200.fa -l /home/XiaocmFk3eJ/bin/busco_lineagv5/busco_downloads/lineages/mammalia_odb10/ -o k31.contig.busco -m genome -c 10 --offline --augustus
+```
+
+```shell
+#Compleasm
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s4.busco_purged/purged_besstM/k89_purged_besstM_busco/compleasm/compleasm.sh
+compleasm run -a Scaffolds_pass1.fa -o compleasm_output -l eukaryota -t 10 -l mammalia -L /nesi/nobackup/massey04238/temp/busco_database/mammalia_odb10 -m busco
+```
+
+### 2.6 Heterozygosity and mutation rate
+
+To quick evaluate the heterozygosity of western Australia possum, the first 100 complete and single genes were selected from mammalia_db10. 
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s2.heterozygosity/s2.run.sh
+grep Complete full_table.tsv |head -100|cut -f3,4,5|perl -ne 'chomp;my@a=split /\t/,$_;my$s=$a[1]-1;print "$a[0]\t$s\t$a[2]\n"' >busco_complete_head100.bed
+```
+
+After mapping reads aganist Megahit - K89 contigs after reduction by Purge_dups, variants were called using BCFtools (v1.21) [@danecek2021].
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s2.heterozygosity/s1.bcftools_vcf/k89_purged_vcf/run.sh
+bcftools mpileup -Ou -f purged.fa wa_purged_sorted.bam | bcftools call -mv -Oz -o output.vcf.gz
+
+bcftools index output.vcf.gz
+
+bcftools norm -f purged.fa output.vcf.gz -Oz -o output.norm.vcf.gz
+vcftools --gzvcf output.norm.vcf.gz --recode --recode-INFO-all --stdout --remove-indels|gzip >output.norm.snp.vcf.gz
+```
+
+Then, Single Nucleotide Polymorphisms (SNPs) in gene region were extracted using BEDtools (v2.31.0) [@quinlan2010] and the corresponding genotype (GT filed in VCF files) information was split using in-house script. Heterozygosity was calculated roughly by dividing the total SNPs number by the gene length.
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/05.megahit/s10.purge_dups/s2.heterozygosity/s3.stat.sh
+cat  busco_complete_head100.bed|while read i
+        do
+        array=(`echo $i|tr ',' ' '`)
+        Len=$[${array[2]} - ${array[1]}]
+        echo $i|sed 's/ /\t/g' >${array[0]}.bed
+        echo "${array[0]}"
+        bedtools intersect -a output.norm.snp.vcf.gz -b ${array[0]}.bed > ${array[0]}.snp.out
+        less ${array[0]}.snp.out |cut -f10|sed 's/:/\t/g'|cut -f1|sort -k1n|uniq -c |perl -e 'my$out;while(<>){chomp;my@a=split /\s+/,$_;$out.=$a[2]."_".$a[1].";";};print "'${array[0]}'\t'$Len'\t$out\n"' >>busco_complete_head100.snp.stat
+        rm ${array[0]}.bed ${array[0]}.snp.out
+done
+```
+
+In order to estimate the mutation rate between western Australia possums (samples involved in this study) and eastern Australia possums (species of the public genome), short reads of our samples were aligned to the reference, followed by calling variants using BCFtools.
+
+```shell
+#/nesi/project/massey04238/01.possum/03.assemble/08.bcftools_consensus/bcftools/bcf_consensus.sh
+bcftools mpileup -Ou -f ref.fa wa_ref_sorted.bam | bcftools call -mv -Oz -o output.vcf.gz
+
+bcftools index output.vcf.gz
+
+bcftools norm -f ref.fa output.vcf.gz -Oz -o output.norm.vcf.gz
+vcftools --gzvcf output.norm.vcf.gz --recode --recode-INFO-all --stdout --remove-indels >output.norm.snp.vcf
+```
+
+Those SNPs within gene region of the first 100 complete and single genes in mammalia_db10 were collected and classified using BEDtools and in-house script. Then, mutation rate was calculated roughly by dividing the total SNPs number by the gene length.
+
+```shell
+#/nesi/project/massey04238/01.possum/01.ref/busco/refbusco/s2.heterozygosity/t.sh
+cat  busco_complete_head100.bed|while read i
+        do
+        array=(`echo $i|tr ',' ' '`)
+        Len=$[${array[2]} - ${array[1]}]
+        echo $i|sed 's/ /\t/g' >${array[3]}.bed
+        echo "${array[3]}"
+        bedtools intersect -a output.norm.snp.vcf.gz -b ${array[3]}.bed > ${array[3]}.snp.out
+        less ${array[3]}.snp.out |cut -f10|sed 's/:/\t/g'|cut -f1|sort -k1n|uniq -c |perl -e 'my$out;while(<>){chomp;my@a=split /\s+/,$_;$out.=$a[2]."_".$a[1].";";};print "'${array[3]}'\t'$Len'\t$out\n"' >>busco_complete_head100.snp.stat
+        rm ${array[3]}.bed ${array[3]}.snp.out
+done
+```
+
