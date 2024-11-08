@@ -276,9 +276,9 @@ cat  busco_complete_head100.bed|while read i
 done
 ```
 
-## Reference-guided assembly
+## 3 Reference-guided assembly
 
-### Consensus
+### 3.1 Consensus
 
 As clean reads were already aligned to the reference genome and variants were called, the consensus could be simply obtained using BCFtools.
 
@@ -297,7 +297,7 @@ bcftools consensus -f ref.fa output.norm.vcf.gz  > wa_consensus.fa
 
 Then, the consensus was checked manually using IGV (v2.18.4) [@robinson2011].
 
-### Subgroups assembly
+### 3.2 Subgroups assembly
 
 To reduce the difficulty and complexity of whole genome assembly, we presumed that if reads in a certain region could be identified and assorted into subgroups, using *De novo* assemblers to assemble those reads in different subgroups respectively might be a more easy way to obtain a better assembly [@lischer2017]. To do so, we presumed a strategy that grouping reads based on chromosomes of the reference genome. Firstly, all clean reads were mapped to chromosome 1. Those mapped reads were extracted to do *De novo* assembling independently, while the unmapped reads continued mapping to chromosome 2, and so on. iterative alignment might effectively avoid multiple aligned reads to be used more than once. We don't know how multiple aligned reads will affect the result yet, but in previous research, this issue was just ignored [@schneeberger2011].
 
@@ -321,7 +321,7 @@ seqkit grep -j 20 -f chr1_mapped_reads.list WGS_clean_R1.fq.gz -o chr1_mapped_R1
 seqkit grep -j 20 -f chr1_mapped_reads.list WGS_clean_R2.fq.gz -o chr1_mapped_R2.fq.gz
 ```
 
-### Reference-guided scaffolding
+### 3.3 Reference-guided scaffolding
 
 Since there already is a chromosome-level reference genome, it might be useful to use it to guide scaffolding. In this scenario, contigs were assembled using *De novo* assemblers, followed by reference-guided scaffolding using ntJoin (v1.1.5) [@coombe2020] and Ragtag (v2.1.0) [@alonge2022] which were proven to be effective in previous research [@mira-jover2024; @alonge2022]. Redundans was also tested, as its scaffolding module contains the option of using reference. The Megahit - K89 assembly was used in these tests.
 
