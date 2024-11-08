@@ -14,7 +14,6 @@ module load FastQC/0.12.1
 fastqc -t 8 -o s1.2.Fastqc_out 22-M-012721_H5L5VDSX7_CTCCACTAAT-AACAAGTACA_L001_R1.fastq.gz 22-M-012721_H5L5VDSX7_CTCCACTAAT-AACAAGTACA_L001_R2.fastq.gz
 ```
 
----
 ### 1.2 Filtering
 
 Raw reads with the rate of *N* higher than 5%, the low-quality bases (quality score < 10) higher than 30%, and the duplicated reads were filtered by SOAPnuke (v 2.1.9) [@chen2018].
@@ -24,7 +23,6 @@ Raw reads with the rate of *N* higher than 5%, the low-quality bases (quality sc
 SOAPnuke filter -1 WGS_raw_R1.fq.gz -2 WGS_raw_R2.fq.gz  -C WGS_clean_R1.fq.gz -D WGS_clean_R2.fq.gz -l 10 -q 0.3 -n 0.05 -c filter_other.config -o s2.filtered -T 10
 ```
 
----
 ### 1.3 Mapping to reference genome
 
 To infer the insert size of the library, the published reference genome from western Australia possums ([GCF_011100635.1](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_011100635.1/)) [@bondAdmixedBrushtailPossum2023] was downloaded from NCBI. Clean reads were aligned against the reference using BWA (v0.7.18-r1243) [@li2013], followed by sorting Bam files using Samtools (v1.19) [@danecek2021].
@@ -57,7 +55,6 @@ less win5k.out|awk '$5>=37.5&&$5<=50&&$4>=10&&$4<=17'|cut -f1-3|perl -ne 'chomp;
 seqkit subseq --bed low_dep.bed possum_ref.fa -o low_dep.fa
 ```
 
----
 ### 1.4 Genome size estimation with *K-mer*
 
 Genome size of western Australia possum was estimated through *K-mer* approach, employing kmerfreq (v1.0) [@liu2013] with 17mer.
