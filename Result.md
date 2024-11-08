@@ -199,9 +199,9 @@ After calculating heterozygosity or mutation rate of each selected gene, average
 
 ![Average heterozygosity and mutation rate](./Images/Pasted%20image%2020241108144733.png)
 
-## Reference-guided assembly
+## 3 Reference-guided assembly
 
-### Consensus
+### 3.1 Consensus
 
 The statistics of the consensus seemed almost the same with reference genome. Especially, the gap size in the consensus and reference genome was identical, 18,696,463 bp, and scaffold number and contig number are also the same. So we suspected that BCFtools might just directly modify the reference genome referring to the VCF file and introduce reference sequence into the consensus in the regions that were not mapped by reads.
 
@@ -214,11 +214,11 @@ We manually checked the alignment of NW_023494386.1, and observed that BCFtools 
 
 ![Checking the consensus](./Images/Pasted%20image%2020241108155530.png)
 
-### Subgroups assembly
+### 3.2 Subgroups assembly
 
 For now, clean reads are aligning to chromosome 1 of the reference genome. There is no enough result to be discussed yet.
 
-### Reference-guided scaffolding
+### 3.3 Reference-guided scaffolding
 
 Ragtag scaffolds seemed good as its scaffold N50 reached incredibly 463.37 Mb, while Redundans only achieved 11.55 kb, even lower than that of BESST scaffolds without using reference.
 
